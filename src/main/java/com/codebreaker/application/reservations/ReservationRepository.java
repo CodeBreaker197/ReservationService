@@ -1,5 +1,6 @@
 package com.codebreaker.application.reservations;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
@@ -14,27 +15,25 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     List<ReservationEntity> findAllByStatusIs(ReservationStatus status);
 
     @Query("""
-           SELECT COUNT(r) > 0 FROM ReservationEntity r
+           SELECT r.id FROM ReservationEntity r
            WHERE r.roomId = :roomId
-           AND r.status = :status
-           AND (:id IS NULL OR r.id != :id)
+           AND :startDate < r.endDate
            AND r.startDate < :endDate
-           AND r.endDate > :startDate
+           AND r.status = :status
            """)
-    boolean hasConflict(
+    List<Long> hasConflict(
             @Param("roomId") Long roomId,
-            @Param("status") ReservationStatus status,
-            @Param("id") Long id,
             @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
-    );
+            @Param("endDate") LocalDate endDate,
+            @Param("status") ReservationStatus status
+            );
 
     @Transactional
     @Modifying
     @Query("""
            UPDATE ReservationEntity r
-           SET r.status = :status
-           WHERE r.id = :id
+               SET r.status = :status
+               WHERE r.id = :id
            """)
     void setStatus(
             @Param("id") Long id,
@@ -44,4 +43,15 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
 
     @Query("SELECT r FROM ReservationEntity r WHERE r.roomId = :roomId")
     List<ReservationEntity> findAllReservationsByRoomId(@Param("roomId") Long roomId);
+
+    @Query("""
+           SELECT r FROM ReservationEntity r
+               WHERE (:roomId IS NULL OR r.roomId = :roomId)
+               AND (:userId IS NULL OR r.userId = :userId)
+           """)
+    List<ReservationEntity> searchAllByFilter(
+            @Param("userId") Long userId,
+            @Param("roomId") Long roomId,
+            Pageable pageable
+    );
 }

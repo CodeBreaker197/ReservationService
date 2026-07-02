@@ -41,9 +41,22 @@ public class ReservationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Reservation>> getAllReservations() {
+    public ResponseEntity<List<Reservation>> getAllReservations(
+            @RequestParam(name = "userId", required = false) Long userId,
+            @RequestParam(name = "roomId", required = false) Long roomId,
+            @RequestParam(name = "pageSize", required = false) Integer pageSize,
+            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+    ) {
+
+        var filter = new ReservationSearchFilter(
+                userId,
+                roomId,
+                pageSize,
+                pageNumber
+        );
+
         log.info("Called getAllReservations()");
-        return ResponseEntity.ok(reservationService.findAllReservations());
+        return ResponseEntity.ok(reservationService.searchAllByFilter(filter));
     }
 
     @GetMapping("/room/{roomId}")
