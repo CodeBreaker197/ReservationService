@@ -1,4 +1,4 @@
-package com.codebreaker.application.availability;
+package com.codebreaker.application.reservations.availability;
 
 public enum AvailabilityStatus {
     AVAILABLE,

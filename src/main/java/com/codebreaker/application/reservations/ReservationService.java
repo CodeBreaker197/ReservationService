@@ -1,7 +1,7 @@
 package com.codebreaker.application.reservations;
 
 
-import com.codebreaker.application.availability.ReservationAvailabilityService;
+import com.codebreaker.application.reservations.availability.ReservationAvailabilityService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

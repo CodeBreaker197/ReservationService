@@ -1,4 +1,4 @@
-package com.codebreaker.application.availability;
+package com.codebreaker.application.reservations.availability;
 
 import jakarta.validation.Valid;
 import org.slf4j.Logger;

@@ -1,6 +1,5 @@
-package com.codebreaker.application.availability;
+package com.codebreaker.application.reservations.availability;
 
-import com.codebreaker.application.reservations.ReservationEntity;
 import com.codebreaker.application.reservations.ReservationRepository;
 import com.codebreaker.application.reservations.ReservationStatus;
 import org.slf4j.Logger;
