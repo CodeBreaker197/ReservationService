@@ -17,37 +17,35 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     @Query("""
            SELECT r.id FROM ReservationEntity r
            WHERE r.roomId = :roomId
-           AND :startDate < r.endDate
-           AND r.startDate < :endDate
-           AND r.status = :status
+             AND :startDate < r.endDate
+             AND r.startDate < :endDate
+             AND r.status = :status
            """)
-    List<Long> hasConflict(
+    List<Long> findConflictIds(
             @Param("roomId") Long roomId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("status") ReservationStatus status
-            );
+    );
 
     @Transactional
     @Modifying
     @Query("""
            UPDATE ReservationEntity r
-               SET r.status = :status
-               WHERE r.id = :id
+              SET r.status = :status
+            WHERE r.id = :id
            """)
     void setStatus(
             @Param("id") Long id,
             @Param("status") ReservationStatus status
     );
 
-
-    @Query("SELECT r FROM ReservationEntity r WHERE r.roomId = :roomId")
-    List<ReservationEntity> findAllReservationsByRoomId(@Param("roomId") Long roomId);
+    List<ReservationEntity> findAllByRoomId(Long roomId);
 
     @Query("""
            SELECT r FROM ReservationEntity r
-               WHERE (:roomId IS NULL OR r.roomId = :roomId)
-               AND (:userId IS NULL OR r.userId = :userId)
+           WHERE (:roomId IS NULL OR r.roomId = :roomId)
+             AND (:userId IS NULL OR r.userId = :userId)
            """)
     List<ReservationEntity> searchAllByFilter(
             @Param("userId") Long userId,

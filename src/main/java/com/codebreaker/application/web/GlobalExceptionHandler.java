@@ -1,78 +1,89 @@
 package com.codebreaker.application.web;
 
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.slf4j.LoggerFactory;
-import java.time.LocalDateTime;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    public static final Logger log = LoggerFactory.getLogger
-            (GlobalExceptionHandler.class);
-
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponceDto> genericExceptionHandler(
-            Exception e
-    ) {
-        log.error("Handle exception ", e);
-
-        var errorDto = new ErrorResponceDto(
-                  "Internal server error",
-                e.getMessage(),
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorDto);
-
-    }
+    private static final Logger log =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponceDto> entityNotFoundHandler(
-            EntityNotFoundException e
+    public ResponseEntity<ErrorResponseDto> handleNotFound(
+            EntityNotFoundException exception
     ) {
-        log.error("Handle Entity Not Found exception ", e);
-
-        var errorDto = new ErrorResponceDto(
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
                 "Entity not found",
-                e.getMessage(),
-                LocalDateTime.now()
+                exception.getMessage()
         );
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(errorDto);
-
     }
 
-    @ExceptionHandler(exception = {
+    @ExceptionHandler({
             IllegalArgumentException.class,
-            IllegalStateException.class,
-            MethodArgumentNotValidException.class
+            IllegalStateException.class
     })
-    public ResponseEntity<ErrorResponceDto> badRequestHandler(
-            Exception e
+    public ResponseEntity<ErrorResponseDto> handleBadRequest(
+            RuntimeException exception
     ) {
-        log.error("Handle Bad Request ", e);
-
-        var errorDto = new ErrorResponceDto(
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
                 "Bad request",
-                e.getMessage(),
-                LocalDateTime.now()
+                exception.getMessage()
         );
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errorDto);
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDto> handleValidation(
+            MethodArgumentNotValidException exception
+    ) {
+        String details = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
 
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                details
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleUnexpected(
+            Exception exception
+    ) {
+        log.error("Unexpected server error", exception);
+
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Internal server error",
+                "An unexpected error occurred"
+        );
+    }
+
+    private ResponseEntity<ErrorResponseDto> buildResponse(
+            HttpStatus status,
+            String message,
+            String details
+    ) {
+        return ResponseEntity.status(status).body(
+                new ErrorResponseDto(
+                        message,
+                        details,
+                        LocalDateTime.now()
+                )
+        );
     }
 }

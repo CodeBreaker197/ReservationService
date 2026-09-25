@@ -12,7 +12,8 @@ import java.util.List;
 @Service
 public class ReservationAvailabilityService {
 
-    Logger log = LoggerFactory.getLogger(ReservationAvailabilityService.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ReservationAvailabilityService.class);
 
     private final ReservationRepository repository;
 
@@ -20,28 +21,33 @@ public class ReservationAvailabilityService {
         this.repository = repository;
     }
 
-    public boolean  isReservationAvailable(
+    public boolean isReservationAvailable(
             Long roomId,
             LocalDate startDate,
             LocalDate endDate
     ) {
-
-        if(startDate.isBefore(endDate)) {
-            throw new IllegalArgumentException("Start date must be before end date");
+        if (!startDate.isBefore(endDate)) {
+            throw new IllegalArgumentException(
+                    "startDate must be before endDate"
+            );
         }
 
-        List<Long> conflictingIds = repository.hasConflict(
+        List<Long> conflictIds = repository.findConflictIds(
                 roomId,
                 startDate,
                 endDate,
                 ReservationStatus.APPROVED
         );
 
-        if(conflictingIds.isEmpty()) {
+        if (conflictIds.isEmpty()) {
             return true;
         }
-        log.info("Conflicting with ids: ids={}", conflictingIds);
+
+        log.info(
+                "Room availability conflict: roomId={}, reservationIds={}",
+                roomId,
+                conflictIds
+        );
         return false;
     }
-
 }

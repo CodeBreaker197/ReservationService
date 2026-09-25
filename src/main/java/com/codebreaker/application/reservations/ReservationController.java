@@ -1,19 +1,20 @@
 package com.codebreaker.application.reservations;
 
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import java.util.List;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/reservation")
 public class ReservationController {
 
-    private static final Logger log = LoggerFactory.getLogger(ReservationController.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ReservationController.class);
 
     private final ReservationService reservationService;
 
@@ -23,61 +24,61 @@ public class ReservationController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Reservation> getReservationById(
-            @PathVariable("id") Long reservationId
+            @PathVariable Long id
     ) {
-        log.info("Called getReservationById({})", reservationId);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(reservationService.getReservationById(reservationId));
+        log.info("Get reservation: id={}", id);
+        return ResponseEntity.ok(
+                reservationService.getReservationById(id)
+        );
     }
 
-    @GetMapping("/status/{reservationStatus}")
+    @GetMapping("/status/{status}")
     public ResponseEntity<List<Reservation>> getAllReservationsByStatus(
-            @PathVariable ReservationStatus reservationStatus
+            @PathVariable ReservationStatus status
     ) {
-        log.info("Called getAllReservationsByStatus() with status: {}", reservationStatus);
-        return ResponseEntity
-                .ok(reservationService.findAllReservationsByStatus(reservationStatus));
+        log.info("Get reservations by status: status={}", status);
+        return ResponseEntity.ok(
+                reservationService.findAllReservationsByStatus(status)
+        );
     }
 
     @GetMapping
     public ResponseEntity<List<Reservation>> getAllReservations(
-            @RequestParam(name = "userId", required = false) Long userId,
-            @RequestParam(name = "roomId", required = false) Long roomId,
-            @RequestParam(name = "pageSize", required = false) Integer pageSize,
-            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Long roomId,
+            @RequestParam(required = false) Integer pageSize,
+            @RequestParam(required = false) Integer pageNumber
     ) {
-
-        var filter = new ReservationSearchFilter(
-                userId,
-                roomId,
-                pageSize,
-                pageNumber
+        return ResponseEntity.ok(
+                reservationService.searchAllByFilter(
+                        new ReservationSearchFilter(
+                                userId,
+                                roomId,
+                                pageSize,
+                                pageNumber
+                        )
+                )
         );
-
-        log.info("Called getAllReservations()");
-        return ResponseEntity.ok(reservationService.searchAllByFilter(filter));
     }
 
     @GetMapping("/room/{roomId}")
     public ResponseEntity<List<Reservation>> getAllReservationsByRoomId(
             @PathVariable Long roomId
     ) {
-        log.info("Get getAllReservationsByRoomId() id={}", roomId);
-        return ResponseEntity
-                .ok(reservationService.findAllReservationsByRoomId(roomId));
+        return ResponseEntity.ok(
+                reservationService.findAllReservationsByRoomId(roomId)
+        );
     }
 
     @PostMapping
     public ResponseEntity<Reservation> createReservation(
-            @RequestBody @Valid Reservation reservationToCreate
+            @Valid @RequestBody Reservation reservationToCreate
     ) {
-        log.info("Called createReservation()");
-
         Reservation createdReservation =
                 reservationService.createReservation(reservationToCreate);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
                 .body(createdReservation);
     }
 
@@ -85,43 +86,26 @@ public class ReservationController {
     public ResponseEntity<Reservation> approveReservation(
             @PathVariable Long id
     ) {
-        log.info("Called approveReservation, id={}", id);
-
-        var reservation = reservationService.approveReservation(id);
-        return ResponseEntity.ok().body(reservation);
-    }
-
-    @PutMapping("/{id}/status/{status}")
-    public ResponseEntity<Void> setStatus( // Function for administrators
-            @PathVariable Long id,
-            @PathVariable ReservationStatus status
-    ) {
-        log.info("Called setStatus(), id={}", id);
-        reservationService.setStatus(id, status);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                reservationService.approveReservation(id)
+        );
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Reservation> updateReservation(
             @PathVariable Long id,
-            @RequestBody @Valid Reservation reservationToUpdate
+            @Valid @RequestBody Reservation reservationToUpdate
     ) {
-        log.info("Called updateReservation id={}, reservationToUpdate={}",
-                id, reservationToUpdate);
-
-        var updated = reservationService.
-                updateReservation(id, reservationToUpdate);
-
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(
+                reservationService.updateReservation(id, reservationToUpdate)
+        );
     }
 
     @DeleteMapping("/{id}/cancel")
-    public ResponseEntity<Void> deleteReservation(
+    public ResponseEntity<Void> cancelReservation(
             @PathVariable Long id
     ) {
-        log.info("Called deleteReservation id={}", id);
         reservationService.cancelReservation(id);
-        return ResponseEntity.ok()
-                .build();
+        return ResponseEntity.noContent().build();
     }
 }

@@ -4,12 +4,11 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
-@Table(name = "reservations")
 @Entity
+@Table(name = "reservations")
 public class ReservationEntity {
 
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -29,7 +28,8 @@ public class ReservationEntity {
     @Column(name = "status", nullable = false)
     private ReservationStatus status;
 
-    public ReservationEntity() { }
+    protected ReservationEntity() {
+    }
 
     public ReservationEntity(
             Long id,
@@ -45,10 +45,6 @@ public class ReservationEntity {
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getId() {
@@ -73,22 +69,6 @@ public class ReservationEntity {
 
     public ReservationStatus getStatus() {
         return status;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public void setRoomId(Long roomId) {
-        this.roomId = roomId;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
     }
 
     public void setStatus(ReservationStatus status) {
